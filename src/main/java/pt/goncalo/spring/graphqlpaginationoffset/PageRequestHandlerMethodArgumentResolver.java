@@ -5,9 +5,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.core.MethodParameter;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.HandlerMethodArgumentResolver;
+import org.springframework.graphql.data.query.SortStrategy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,9 +21,11 @@ import org.springframework.stereotype.Component;
 public class PageRequestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final GraphqlPageRequestConfiguration pageRequestDefaultConfiguration;
+    private final SortStrategy sortStrategy;
 
-    public PageRequestHandlerMethodArgumentResolver(GraphqlPageRequestConfiguration pageRequestDefaultConfiguration) {
+    public PageRequestHandlerMethodArgumentResolver(GraphqlPageRequestConfiguration pageRequestDefaultConfiguration, SortStrategy sortStrategy) {
         this.pageRequestDefaultConfiguration = pageRequestDefaultConfiguration;
+        this.sortStrategy = sortStrategy;
     }
 
     @Override
@@ -33,7 +37,12 @@ public class PageRequestHandlerMethodArgumentResolver implements HandlerMethodAr
     public Object resolveArgument(MethodParameter parameter, DataFetchingEnvironment environment) throws Exception {
         var pageNumber = environment.getArgumentOrDefault("pageNumber", pageRequestDefaultConfiguration.getPageNumber());
         var pageSize = environment.getArgumentOrDefault("pageSize", pageRequestDefaultConfiguration.getPageSize());
-        return PageRequest.of(pageNumber, pageSize);
+
+        var sort = sortStrategy.extract(environment);
+        if (sort == null) {
+            return PageRequest.of(pageNumber, pageSize);
+        }
+        return PageRequest.of(pageNumber, pageSize, sort);
     }
 
 
