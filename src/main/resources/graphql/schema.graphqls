@@ -1,0 +1,9 @@
+type Query{
+    examplePaged(pageNumber: Int, pageSize: Int, sortBy: String, sortOrder: String ): ExamplePage
+    examples: [Example]
+}
+type Example{
+    charValue: String
+
+}
+
