@@ -1,6 +1,8 @@
 package pt.goncalo.spring.graphqlpaginationoffset;
 
 import graphql.schema.DataFetchingEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
@@ -22,6 +24,7 @@ public class PageRequestHandlerMethodArgumentResolver implements HandlerMethodAr
 
     private final GraphqlPageRequestConfiguration pageRequestDefaultConfiguration;
     private final SortStrategy sortStrategy;
+    private final Logger log = LoggerFactory.getLogger(PageRequestHandlerMethodArgumentResolver.class);
 
     public PageRequestHandlerMethodArgumentResolver(GraphqlPageRequestConfiguration pageRequestDefaultConfiguration, SortStrategy sortStrategy) {
         this.pageRequestDefaultConfiguration = pageRequestDefaultConfiguration;
@@ -38,7 +41,9 @@ public class PageRequestHandlerMethodArgumentResolver implements HandlerMethodAr
         var pageNumber = environment.getArgumentOrDefault("pageNumber", pageRequestDefaultConfiguration.getPageNumber());
         var pageSize = environment.getArgumentOrDefault("pageSize", pageRequestDefaultConfiguration.getPageSize());
 
+        log.debug("sortStrategy is " + sortStrategy);
         var sort = sortStrategy.extract(environment);
+        log.debug("found sort is " + sort);
         if (sort == null) {
             return PageRequest.of(pageNumber, pageSize);
         }
